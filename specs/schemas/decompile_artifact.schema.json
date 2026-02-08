@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DecompileArtifact",
+  "type": "object",
+  "properties": {
+    "func_id": {"type": "string"},
+    "binary_sha": {"type": "string"},
+    "prototype": {"type": ["string", "null"]},
+    "pseudocode": {"type": "string"},
+    "callers": {"type": "array", "items": {"type": "string"}},
+    "callees": {"type": "array", "items": {"type": "string"}},
+    "strings": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string"},
+    "error": {"type": ["string", "null"]}
+  },
+  "required": ["func_id", "binary_sha", "pseudocode", "status"]
+}

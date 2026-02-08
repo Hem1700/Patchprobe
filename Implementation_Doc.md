@@ -1,30 +1,58 @@
-# LLM-Assisted Binary Patch Diffing — Implementation Document (CLI-First)
+# LLM-Assisted Binary Patch Diffing — Implementation Document (CLI-First, Very Detailed)
 
-> **Purpose:** This document turns the design into a concrete, implementable plan with explicit modules, data schemas, CLI behavior, workflows, error handling, and test strategy. It is intentionally **defender-focused** and **non-exploitative**.
-
----
-
-## 0) Scope and constraints
-
-### 0.1 Product scope (explicit)
-- **Primary deliverable:** a **CLI tool** that compares two versions of the same binary and generates an **auditable triage report**.
-- **Secondary deliverables:** optional local daemon mode, extensible backends (diff, decompile, LLM), machine-readable artifacts, and reproducible outputs.
-
-### 0.2 Non-goals (explicit)
-- No exploit or payload generation.
-- No remote scanning or unauthorized target analysis.
-- No “zero-day” or offensive guidance.
-
-### 0.3 Operating assumptions
-- The user provides authorized binaries (pre/ post patch).
-- The system may run **fully offline**.
-- The system must produce **provenance** for all derived artifacts.
+> **Purpose:** This document turns the design into concrete engineering work with explicit modules, data schemas, CLI contracts, stage I/O, error codes, and test strategy. The system is **defender-focused** and **non-exploitative**.
 
 ---
 
-## 1) Repository structure
+## 0) Summary and guiding principles
 
-### 1.1 Top-level layout
+### 0.1 Deliverable summary
+- A **CLI tool** named `patchdiff` that compares two versions of the same binary and generates an **auditable triage report**.
+- A **reproducible pipeline** with stable artifacts for each stage.
+- A **pluggable architecture** for diffing, decompilation, and LLM analysis.
+
+### 0.2 Core invariants
+- Raw binaries are **never modified**.
+- Every derived artifact is **hash-addressed** and **traceable** to inputs.
+- All LLM outputs must be **structured JSON** and **evidence-backed**.
+- Safety policy prohibits exploit guidance and operationalization.
+
+### 0.3 Non-goals
+- No offensive exploit generation.
+- No remote target scanning.
+- No ingestion of untrusted binaries without explicit user authorization.
+
+---
+
+## 1) Terminology and data types
+
+### 1.1 Terminology
+- **Binary A**: Pre-patch binary.
+- **Binary B**: Post-patch binary.
+- **Function pair**: A matched function between A and B.
+- **Candidate**: A function pair selected for decompilation and LLM analysis.
+- **Artifact**: Any output file produced by a pipeline stage.
+
+### 1.2 Standard fields
+All artifacts share a common metadata envelope:
+```json
+{
+  "artifact_id": "uuid",
+  "artifact_type": "string",
+  "created_at": "ISO-8601",
+  "tool_version": "string",
+  "inputs": {
+    "binary_a_sha256": "...",
+    "binary_b_sha256": "...",
+    "upstream_artifact_hashes": ["..."]
+  }
+}
+```
+
+---
+
+## 2) Repository structure
+
 ```
 /patchprobe
   /patchprobe
@@ -67,7 +95,7 @@
     /models
       schemas.py
       db.py
-      migrations
+      migrations/
 
     /storage
       object_store.py
@@ -86,6 +114,19 @@
     run_ghidra_headless.sh
     ghidra_decompile.py
 
+  /specs
+    /schemas
+      artifact.schema.json
+      job.schema.json
+      function_pair.schema.json
+      diff_result.schema.json
+      ranked_candidate.schema.json
+      decompile_artifact.schema.json
+      llm_output.schema.json
+      validation_result.schema.json
+      report.schema.json
+      config.schema.json
+
   /tests
     /unit
     /integration
@@ -96,494 +137,443 @@
   pyproject.toml
 ```
 
-### 1.2 Notes
-- Default language: **Python 3.11+**.
-- CLI entrypoint: `patchdiff`.
-- Use `pyproject.toml` for packaging (Poetry or Hatch).
-
 ---
 
-## 2) CLI specification
+## 3) CLI specification (contract-level detail)
 
-### 2.1 CLI entrypoints
-- `patchdiff` (main CLI)
-- optional `patchdiffd` (daemon / API)
+### 3.1 Command: `patchdiff ingest`
+**Purpose:** Create a job record and compute initial binary metadata.
 
-### 2.2 CLI commands and behavior
+**Inputs:**
+- `--a <path>`: binary A (required)
+- `--b <path>`: binary B (required)
+- `--tag <string>`: optional advisory/tag
+- `--out <path>`: job directory (required)
 
-#### 2.2.1 `patchdiff ingest`
-**Purpose:** Register a job and compute metadata.
+**Outputs:**
+- `<job>/job.json`
+- `<job>/artifacts/ingest/metadata_a.json`
+- `<job>/artifacts/ingest/metadata_b.json`
 
-**Example:**
-```
-patchdiff ingest --a /path/before.bin --b /path/after.bin --tag KB1234 --out ./jobs/job_001
-```
+**Exit codes:**
+- `0`: success
+- `10`: invalid CLI args
+- `20`: file not found
+- `30`: hash/metadata failure
 
-**Options:**
-- `--a <path>`: input binary A (pre-patch)
-- `--b <path>`: input binary B (post-patch)
-- `--tag <string>`: optional tag (e.g., advisory ID)
-- `--out <path>`: output job directory
-- `--format <json|yaml>`: output metadata format
-
-**Output:**
-- Job directory with `job.json`, raw binary references, metadata artifacts
-
-#### 2.2.2 `patchdiff diff`
+### 3.2 Command: `patchdiff diff`
 **Purpose:** Run diff backend to match functions and compute deltas.
 
-**Example:**
-```
-patchdiff diff --job ./jobs/job_001 --backend diaphora --out ./jobs/job_001
-```
-
-**Options:**
+**Inputs:**
 - `--job <path>`
 - `--backend <diaphora|ghidra|radare2>`
-- `--config <path>` optional backend config
-- `--out <path>`
 
-**Output:**
-- `function_pairs.json`
-- `diff_results.json`
+**Outputs:**
+- `<job>/artifacts/diff/function_pairs.json`
+- `<job>/artifacts/diff/diff_results.json`
 
-#### 2.2.3 `patchdiff rank`
-**Purpose:** Rank and select high-signal diffs.
+### 3.3 Command: `patchdiff rank`
+**Purpose:** Score and select high-signal candidates.
 
-**Example:**
-```
-patchdiff rank --job ./jobs/job_001 --top 30
-```
-
-**Options:**
+**Inputs:**
 - `--job <path>`
 - `--top <int>`
-- `--weights <path>` optional scoring config
 
-**Output:**
-- `ranked_candidates.json`
+**Outputs:**
+- `<job>/artifacts/rank/ranked_candidates.json`
 
-#### 2.2.4 `patchdiff decompile`
-**Purpose:** Selectively decompile ranked candidates.
+### 3.4 Command: `patchdiff decompile`
+**Purpose:** Decompile top candidates only.
 
-**Example:**
-```
-patchdiff decompile --job ./jobs/job_001 --top 30
-```
-
-**Options:**
+**Inputs:**
 - `--job <path>`
 - `--top <int>`
-- `--timeout <sec>` per function
+- `--timeout <sec>`
 
-**Output:**
-- `decompile/<func_id>/pseudocode.txt`
-- `decompile/<func_id>/metadata.json`
+**Outputs:**
+- `<job>/artifacts/decompile/<func_id>/pseudocode.txt`
+- `<job>/artifacts/decompile/<func_id>/metadata.json`
 
-#### 2.2.5 `patchdiff analyze`
-**Purpose:** LLM analysis on selected candidates.
+### 3.5 Command: `patchdiff analyze`
+**Purpose:** Run LLM analysis.
 
-**Example:**
-```
-patchdiff analyze --job ./jobs/job_001 --provider local --model llama3
-```
-
-**Options:**
+**Inputs:**
 - `--job <path>`
 - `--provider <local|openai>`
 - `--model <name>`
 - `--max-rounds <int>`
-- `--offline` force local only
 
-**Output:**
-- `analysis/<func_id>/llm.json`
+**Outputs:**
+- `<job>/artifacts/analysis/<func_id>/llm.json`
 
-#### 2.2.6 `patchdiff validate`
+### 3.6 Command: `patchdiff validate`
 **Purpose:** Validate LLM output against evidence.
 
-**Example:**
-```
-patchdiff validate --job ./jobs/job_001
-```
+**Outputs:**
+- `<job>/artifacts/validation/<func_id>/validation.json`
 
-**Output:**
-- `validation/<func_id>/validation.json`
-
-#### 2.2.7 `patchdiff report`
+### 3.7 Command: `patchdiff report`
 **Purpose:** Generate final report.
 
-**Example:**
-```
-patchdiff report --job ./jobs/job_001 --format markdown
-```
+**Inputs:**
+- `--format <markdown|html|json>`
 
-**Output:**
-- `report.md` or `report.html` or `report.json`
+**Outputs:**
+- `<job>/report.md` or `<job>/report.json`
 
-#### 2.2.8 `patchdiff run`
-**Purpose:** End-to-end pipeline in one command.
-
-**Example:**
-```
-patchdiff run --a before.bin --b after.bin --top 30
-```
+### 3.8 Command: `patchdiff run`
+**Purpose:** Run the entire pipeline end-to-end.
 
 ---
 
-## 3) Configuration
+## 4) Configuration details
 
-### 3.1 Config file
-- Default path: `~/.config/patchdiff/config.yaml`
-- User override: `--config <path>`
+### 4.1 Config file location
+- Default: `~/.config/patchdiff/config.yaml`
+- Override: `--config <path>`
 
-### 3.2 Example config
-```yaml
-storage:
-  type: filesystem
-  root: ~/.patchdiff
+### 4.2 Config schema
+A full JSON schema exists at `specs/schemas/config.schema.json`.
 
-backends:
-  diff: diaphora
-  decompile: ghidra
-  llm: local
-
-ranking:
-  top_n: 30
-  weights:
-    cfg_change: 0.3
-    new_guard: 0.2
-    string_signal: 0.1
-
-llm:
-  provider: local
-  model: llama3
-  max_rounds: 3
-
-report:
-  format: markdown
-```
-
-### 3.3 Config precedence
+### 4.3 Config precedence
 1. CLI flags
-2. Job-local `job_config.json`
+2. Job-local overrides (`<job>/job_config.json`)
 3. User config file
-4. Defaults
+4. Built-in defaults
 
 ---
 
-## 4) Core pipeline (end-to-end)
+## 5) Job directory layout
 
-### 4.1 Pipeline orchestration
-Implement a `Pipeline` class that runs these stages with idempotent artifacts:
-1. Ingest
-2. Normalize
-3. Diff
-4. Rank
-5. Decompile
-6. LLM analysis
-7. Validation
-8. Report
-
-Each stage:
-- Reads inputs from job directory or object store
-- Writes outputs to a stable path
-- Produces `artifact.json` with metadata and hashes
-
-### 4.2 Stage contracts
-- Each stage must produce JSON artifacts with **strict schemas**.
-- All artifacts must have:
-  - `artifact_id`
-  - `created_at`
-  - `tool_version`
-  - `inputs` (hashes of upstream artifacts)
-
----
-
-## 5) Data models and schemas
-
-### 5.1 Job schema
-```json
-{
-  "job_id": "...",
-  "tag": "KB1234",
-  "created_at": "2026-02-08T12:00:00Z",
-  "binary_a": {"sha256": "...", "path": "..."},
-  "binary_b": {"sha256": "...", "path": "..."},
-  "config": {"diff_backend": "diaphora"}
-}
 ```
-
-### 5.2 Function pair schema
-```json
-{
-  "func_pair_id": "...",
-  "func_id_a": "...",
-  "func_id_b": "...",
-  "match_score": 0.92,
-  "evidence": ["hash match", "cfg similarity"],
-  "status": "matched"
-}
-```
-
-### 5.3 Diff result schema
-```json
-{
-  "func_pair_id": "...",
-  "change_summary": {
-    "basic_blocks_added": 2,
-    "basic_blocks_removed": 1,
-    "branches_added": 1
-  },
-  "severity_hint": 0.7
-}
-```
-
-### 5.4 Ranked candidate schema
-```json
-{
-  "func_pair_id": "...",
-  "rank": 3,
-  "score": 0.86,
-  "top_signals": [
-    {"signal": "added_guard_clause", "evidence": "new early return"}
-  ]
-}
-```
-
-### 5.5 LLM output schema
-```json
-{
-  "bug_class": "integer overflow / truncation",
-  "confidence": 0.72,
-  "evidence": [
-    {"type": "before", "snippet": "...", "location": "func.c:123"}
-  ],
-  "reachability_notes": ["Called by handler X"],
-  "recommended_validation": ["Test len == max+1"],
-  "safety": {"no_exploit_steps": true}
-}
+<job>/
+  job.json
+  job_config.json
+  artifacts/
+    ingest/
+    normalize/
+    diff/
+    rank/
+    decompile/
+    analysis/
+    validation/
+    report/
+  report.md
+  logs/
+    job.log
 ```
 
 ---
 
-## 6) Diff backend implementation
+## 6) Artifact schemas (authoritative)
 
-### 6.1 Backend interface
-```python
-class DiffBackend(Protocol):
-    def analyze(self, binary_path: str, out_dir: str) -> AnalysisArtifact: ...
-    def match(self, a_analysis: AnalysisArtifact, b_analysis: AnalysisArtifact) -> list[FunctionPair]: ...
-    def diff(self, pairs: list[FunctionPair]) -> list[DiffResult]: ...
-```
+Each artifact type has a JSON Schema definition in `specs/schemas/`.
 
-### 6.2 Diaphora backend (IDA)
-- Execute IDA headless script to generate SQLite.
-- Parse SQLite into `FunctionPair` objects.
-- Extract CFG, strings, hashes, and match score.
-
-### 6.3 Ghidra backend
-- Use Ghidra Version Tracking.
-- Export results to JSON.
-- Map to unified schema.
-
-### 6.4 Radare2 backend
-- Use `radiff2` for function matching.
-- Parse textual output into structured data.
-
-### 6.5 Backend output normalization
-- Convert all backends into common model.
-- Normalize function IDs to stable `func_id` using:
-  - `binary_sha256` + `function_start_address` + `symbol_name`
+| Artifact | File | Purpose |
+|---------|------|---------|
+| Job | `job.schema.json` | job metadata and binary hashes |
+| Function pairs | `function_pair.schema.json` | matched function pairs |
+| Diff results | `diff_result.schema.json` | delta summary |
+| Ranked candidates | `ranked_candidate.schema.json` | top-N selection |
+| Decompile artifact | `decompile_artifact.schema.json` | pseudo-C + metadata |
+| LLM output | `llm_output.schema.json` | structured analysis |
+| Validation result | `validation_result.schema.json` | validation checks |
+| Report | `report.schema.json` | report structure |
 
 ---
 
-## 7) Candidate ranking
+## 7) Stage-by-stage implementation details
 
-### 7.1 Features
-- CFG complexity delta
-- New/removed branches
-- New error paths
-- String change signals
-- Reachability (exports, handlers)
-- Match confidence
+### 7.1 Ingest
+**Inputs:** binary file paths
+**Steps:**
+1. Verify file existence.
+2. Compute SHA-256.
+3. Detect file type (PE/ELF/Mach-O).
+4. Detect arch (x86/x64/arm64).
+5. Write `job.json` + metadata artifacts.
 
-### 7.2 Scoring
-```python
-score = sum(weight[signal] * value(signal))
-score *= match_score
-```
+### 7.2 Normalize
+**Goal:** reduce diff noise without altering originals.
+**Outputs:** `normalized_metadata.json` for each binary.
 
-### 7.3 Ranking output
-- Provide top N candidates with reasoning.
-- Include raw signal values for auditability.
+### 7.3 Diff
+**Goal:** produce stable function pairs and diff summaries.
+**Backend interface:** defined in `patchprobe/backends/diff/base.py`.
 
----
+### 7.4 Rank
+**Goal:** compute score per function pair.
+**Model:** weighted sum of signals * match confidence.
 
-## 8) Decompile service
+### 7.5 Decompile
+**Goal:** decompile only top-N candidates.
+**Backend interface:** defined in `patchprobe/backends/decompile/base.py`.
 
-### 8.1 Interface
-```python
-class DecompileBackend(Protocol):
-    def decompile(self, binary_path: str, func_ids: list[str], out_dir: str) -> list[DecompileArtifact]: ...
-```
+### 7.6 LLM Analysis
+**Goal:** produce structured, evidence-backed analysis.
+**Safety:** enforce JSON schema and disallow exploit steps.
 
-### 8.2 Ghidra headless
-- Use `analyzeHeadless` with custom script.
-- For each func address:
-  - Decompile and export pseudo-C
-  - Extract prototype, callers, callees
+### 7.7 Validate
+**Goal:** verify LLM claims match actual diff evidence.
 
-### 8.3 Failure handling
-- On timeout or failure:
-  - fallback to assembly extraction
-  - record `decompile_status = failed`
+### 7.8 Report
+**Goal:** compile final results in Markdown/JSON.
 
 ---
 
-## 9) Prompt packet builder
+## 8) Error codes
 
-### 9.1 Responsibilities
-- Build strict JSON packets for LLM input.
-- Include before/after pseudocode, metadata, and questions.
-
-### 9.2 Packet structure
-- `binary_a` and `binary_b` metadata
-- `function` metadata
-- `diff` (pseudo + notes)
-- `required_output_schema`
-
----
-
-## 10) LLM analysis service
-
-### 10.1 Provider interface
-```python
-class LLMProvider(Protocol):
-    def analyze(self, packet: dict, config: LLMConfig) -> dict: ...
-```
-
-### 10.2 Local provider
-- Use llama.cpp or similar local inference.
-- Strict JSON output enforced.
-
-### 10.3 Hosted provider
-- Use OpenAI or other provider (optional).
-- Enforce system prompt to block exploit output.
-
-### 10.4 Multi-round analysis
-- Round 1: classification
-- Round 2: critique
-- Round 3: reconciliation
-- Round 4: final verdict
+| Code | Meaning |
+|------|---------|
+| 10 | CLI argument error |
+| 20 | File not found |
+| 30 | Hash/metadata failure |
+| 40 | Diff backend failure |
+| 50 | Decompile failure |
+| 60 | LLM failure |
+| 70 | Validation failure |
+| 80 | Report generation failure |
 
 ---
 
-## 11) Validation engine
+## 9) Logging
 
-### 11.1 Structural checks
-- Ensure references exist in pseudocode.
-- Ensure claimed changes match diff markers.
-
-### 11.2 Heuristic checks
-- Bounds check added?
-- Null check added?
-- Integer widening?
-
-### 11.3 Scoring
-Combine:
-- LLM confidence
-- validation pass rate
-- match confidence
+- JSON structured logs.
+- Each log entry includes `job_id`, `stage`, `event`, `level`.
+- Logs stored in `<job>/logs/job.log`.
 
 ---
 
-## 12) Report generation
+## 10) Determinism and reproducibility
 
-### 12.1 Formats
-- Markdown (default)
-- HTML (optional)
-- JSON (machine)
-
-### 12.2 Required sections
-- Job metadata
-- Ranked candidates
-- Evidence diff
-- Bug class + confidence
-- Validation checklist
-- Audit log
+- Each artifact includes input hashes and tool version.
+- Pipeline stages are idempotent.
+- Re-run should not change outputs unless inputs differ.
 
 ---
 
-## 13) Logging and observability
+## 11) Testing
 
-### 13.1 Logging structure
-- JSON logs for machine parsing
-- Log levels: DEBUG, INFO, WARN, ERROR
+### 11.1 Unit tests
+- Hashing, filetype detection, config parsing.
 
-### 13.2 Job audit log
-- Every stage must log input hash and output hash
-- Record tool versions and configs
+### 11.2 Integration tests
+- Known patch pairs with expected ranked candidates.
 
----
-
-## 14) Security considerations
-
-- Local-only mode by default
-- Redaction option for sensitive strings
-- Enforce explicit user confirmation for hosted LLM
+### 11.3 Regression tests
+- Schema validation across versions.
 
 ---
 
-## 15) Testing strategy
-
-### 15.1 Unit tests
-- Hashing, config parsing, schema validation
-
-### 15.2 Integration tests
-- Known patch pairs
-- Verify rank ordering
-
-### 15.3 Regression tests
-- Ensure stability of schemas
-- Ensure non-exploit guardrails
-
----
-
-## 16) Release packaging
-
-- Package as `patchdiff`
-- Provide Homebrew formula (optional)
-- Provide Docker image for reproducible environment
-
----
-
-## 17) Implementation roadmap
+## 12) Implementation roadmap
 
 ### Phase 0
 - CLI skeleton
-- Ingest + metadata
-- Diff backend (single)
-- Rank + report (JSON)
+- Ingest
+- Single diff backend
+- Ranking
+- JSON report
 
 ### Phase 1
 - Selective decompile
-- LLM analysis (single-round)
-- Validation engine
+- LLM single-round
+- Validation
 
 ### Phase 2
-- Multi-backend support
+- Multi-backend
 - Multi-round LLM
 - HTML report
 
-### Phase 3
-- Daemon/API
-- RBAC + audit logs
+---
+
+## 13) Open decisions
+
+- Primary diff backend for MVP (Diaphora vs Ghidra).
+- Local-only mode default for LLM.
+- Initial report verbosity level.
+
 
 ---
 
-## 18) Open questions
+## 14) Detailed interfaces (authoritative)
 
-- Which diff backend will be primary (IDA/Diaphora vs Ghidra)?
-- Do you want local-only by default, or allow hosted LLM by default?
-- What level of report detail is needed for initial MVP?
+### 14.1 Diff backend interface
+```python
+class DiffBackend(Protocol):
+    def run(self, job: Job, job_dir: str) -> None:
+        """
+        Inputs:
+          - job: Job object with binary metadata
+          - job_dir: job root directory
+        Outputs:
+          - writes function_pairs.json
+          - writes diff_results.json
+        Failure:
+          - raise DiffBackendError on hard failure
+        """
+```
+
+### 14.2 Decompile backend interface
+```python
+class DecompileBackend(Protocol):
+    def run(self, job: Job, job_dir: str, top_n: int | None, timeout: int) -> None:
+        """
+        Inputs:
+          - job: Job object
+          - job_dir: job root directory
+          - top_n: optional override
+          - timeout: per-function timeout
+        Outputs:
+          - writes decompile artifacts under artifacts/decompile/
+        """
+```
+
+### 14.3 LLM provider interface
+```python
+class LLMProvider(Protocol):
+    def analyze(self, packet: dict) -> dict:
+        """
+        Input: prompt packet (strict JSON)
+        Output: structured JSON per llm_output.schema.json
+        """
+```
+
+### 14.4 Storage interface
+```python
+class ObjectStore(Protocol):
+    def write_bytes(self, rel_path: str, data: bytes) -> str: ...
+    def read_bytes(self, rel_path: str) -> bytes: ...
+```
+
+---
+
+## 15) Detailed error handling
+
+### 15.1 Error object shape
+Errors should be logged and returned with:
+```json
+{
+  "error": {
+    "code": 40,
+    "type": "DiffBackendError",
+    "message": "diff backend failed",
+    "details": {"backend": "diaphora"}
+  }
+}
+```
+
+### 15.2 Exit code mapping
+- `10`: CLI argument parsing failure
+- `20`: file not found
+- `30`: ingest failure
+- `40`: diff backend failure
+- `50`: decompile failure
+- `60`: LLM analysis failure
+- `70`: validation failure
+- `80`: report failure
+
+---
+
+## 16) CLI contract (full options)
+
+### 16.1 Global flags
+- `--config <path>`: config path
+- `--log-level <LEVEL>`: DEBUG/INFO/WARN/ERROR
+
+### 16.2 Command flag matrix
+
+| Command | Required flags | Optional flags |
+|---------|----------------|----------------|
+| ingest | `--a` `--b` `--out` | `--tag` |
+| diff | `--job` | `--backend` |
+| rank | `--job` | `--top` |
+| decompile | `--job` | `--top` `--timeout` |
+| analyze | `--job` | `--provider` `--model` `--max-rounds` |
+| validate | `--job` | none |
+| report | `--job` | `--format` |
+| run | `--a` `--b` `--out` | `--tag` `--backend` `--top` `--timeout` `--provider` `--model` `--max-rounds` `--format` |
+
+---
+
+## 17) Stage I/O contracts (explicit)
+
+### 17.1 Ingest outputs
+- `artifacts/ingest/metadata_a.json`
+- `artifacts/ingest/metadata_b.json`
+
+Required fields:
+- `path`, `sha256`, `file_type`, `arch`, `created_at`
+
+### 17.2 Diff outputs
+- `artifacts/diff/function_pairs.json` list of `FunctionPair`
+- `artifacts/diff/diff_results.json` list of `DiffResult`
+
+### 17.3 Rank outputs
+- `artifacts/rank/ranked_candidates.json`
+
+### 17.4 Decompile outputs
+- `artifacts/decompile/<func_id>/pseudocode.txt`
+- `artifacts/decompile/<func_id>/metadata.json`
+
+### 17.5 Analysis outputs
+- `artifacts/analysis/llm.json`
+
+### 17.6 Validation outputs
+- `artifacts/validation/validation.json`
+
+### 17.7 Report outputs
+- `report.md` or `report.json`
+
+---
+
+## 18) Ranking features (definitions)
+
+### 18.1 Structural
+- `cfg_nodes_delta`: absolute delta in CFG nodes
+- `branches_added`: count of newly introduced branches
+- `branches_removed`: count of removed branches
+
+### 18.2 Semantic-ish
+- `new_bounds_check`: newly introduced bounds comparison
+- `new_null_check`: newly introduced pointer check
+- `integer_widening`: type widening in arithmetic or indexing
+
+### 18.3 Textual
+- `string_error_signal`: new strings containing "error", "invalid", "bounds"
+
+---
+
+## 19) Environment variables
+
+- `PATCHDIFF_CONFIG`: override config file path
+- `PATCHDIFF_LOG_LEVEL`: override log level
+- `PATCHDIFF_OFFLINE`: force local LLM only
+
+---
+
+## 20) Artifact validation strategy
+
+- Validate every artifact against its JSON schema on write.
+- Fail fast if schema validation fails.
+
+---
+
+## 21) Safety policy enforcement
+
+- LLM analysis prompts always include a policy note: no exploit steps.
+- Any output containing exploit instructions is rejected by validation.
+
+---
+
+## 22) Implementation checklist
+
+- [ ] CLI scaffolding (argparse)
+- [ ] Ingest metadata
+- [ ] Schema validation
+- [ ] Diff backend integration
+- [ ] Ranking engine
+- [ ] Selective decompilation
+- [ ] LLM analysis integration
+- [ ] Validation checks
+- [ ] Report generation
 

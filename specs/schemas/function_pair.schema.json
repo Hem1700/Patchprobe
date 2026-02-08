@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FunctionPair",
+  "type": "object",
+  "properties": {
+    "func_pair_id": {"type": "string"},
+    "func_id_a": {"type": "string"},
+    "func_id_b": {"type": "string"},
+    "match_score": {"type": "number"},
+    "status": {"type": "string"},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "metadata": {"type": "object"}
+  },
+  "required": ["func_pair_id", "func_id_a", "func_id_b", "match_score", "status"]
+}

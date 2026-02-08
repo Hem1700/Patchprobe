@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DiffResult",
+  "type": "object",
+  "properties": {
+    "func_pair_id": {"type": "string"},
+    "change_summary": {"type": "object"},
+    "severity_hint": {"type": "number"}
+  },
+  "required": ["func_pair_id", "change_summary"]
+}

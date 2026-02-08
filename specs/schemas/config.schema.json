@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "storage": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string"},
+        "root": {"type": "string"}
+      }
+    },
+    "backends": {
+      "type": "object",
+      "properties": {
+        "diff": {"type": "string"},
+        "decompile": {"type": "string"},
+        "llm": {"type": "string"}
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "properties": {
+        "top_n": {"type": "integer"},
+        "weights": {"type": "object"}
+      }
+    },
+    "llm": {
+      "type": "object",
+      "properties": {
+        "provider": {"type": "string"},
+        "model": {"type": "string"},
+        "max_rounds": {"type": "integer"}
+      }
+    },
+    "report": {
+      "type": "object",
+      "properties": {
+        "format": {"type": "string"}
+      }
+    }
+  }
+}

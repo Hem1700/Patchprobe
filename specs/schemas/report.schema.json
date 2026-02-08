@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Report",
+  "type": "object",
+  "properties": {
+    "job_id": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "summary": {"type": "string"},
+    "candidates": {"type": "array", "items": {"type": "object"}},
+    "audit": {"type": "array", "items": {"type": "object"}}
+  },
+  "required": ["job_id", "created_at", "candidates"]
+}

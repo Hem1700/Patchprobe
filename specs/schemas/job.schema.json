@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Job",
+  "type": "object",
+  "properties": {
+    "job_id": {"type": "string"},
+    "tag": {"type": ["string", "null"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "binary_a": {"$ref": "#/definitions/binary"},
+    "binary_b": {"$ref": "#/definitions/binary"},
+    "config": {"type": "object"}
+  },
+  "required": ["job_id", "created_at", "binary_a", "binary_b"],
+  "definitions": {
+    "binary": {
+      "type": "object",
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string"},
+        "file_type": {"type": "string"},
+        "arch": {"type": "string"}
+      },
+      "required": ["path", "sha256", "file_type", "arch"]
+    }
+  }
+}

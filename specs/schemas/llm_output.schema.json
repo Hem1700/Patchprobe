@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LlmOutput",
+  "type": "object",
+  "properties": {
+    "bug_class": {"type": "string"},
+    "confidence": {"type": "number"},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {"type": "string"},
+          "snippet": {"type": "string"},
+          "location": {"type": "string"}
+        },
+        "required": ["type", "snippet"]
+      }
+    },
+    "reachability_notes": {"type": "array", "items": {"type": "string"}},
+    "recommended_validation": {"type": "array", "items": {"type": "string"}},
+    "safety": {
+      "type": "object",
+      "properties": {
+        "no_exploit_steps": {"type": "boolean"}
+      },
+      "required": ["no_exploit_steps"]
+    }
+  },
+  "required": ["bug_class", "confidence", "evidence", "safety"]
+}

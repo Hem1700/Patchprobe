@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RankedCandidate",
+  "type": "object",
+  "properties": {
+    "func_pair_id": {"type": "string"},
+    "rank": {"type": "integer"},
+    "score": {"type": "number"},
+    "top_signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "signal": {"type": "string"},
+          "evidence": {"type": "string"}
+        },
+        "required": ["signal", "evidence"]
+      }
+    }
+  },
+  "required": ["func_pair_id", "rank", "score"]
+}

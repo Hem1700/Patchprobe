@@ -1,0 +1,17 @@
+[project]
+name = "patchprobe"
+version = "0.1.0"
+description = "LLM-assisted binary patch diffing (defender-focused)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pyyaml>=6.0",
+  "jsonschema>=4.0"
+]
+
+[project.scripts]
+patchdiff = "patchprobe.cli:main"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

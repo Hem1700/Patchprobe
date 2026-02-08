@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArtifactEnvelope",
+  "type": "object",
+  "properties": {
+    "artifact_id": {"type": "string"},
+    "artifact_type": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "tool_version": {"type": "string"},
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "binary_a_sha256": {"type": "string"},
+        "binary_b_sha256": {"type": "string"},
+        "upstream_artifact_hashes": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["binary_a_sha256", "binary_b_sha256"]
+    },
+    "payload": {"type": "object"}
+  },
+  "required": ["artifact_id", "artifact_type", "created_at", "inputs", "payload"]
+}

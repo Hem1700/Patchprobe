@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ValidationResult",
+  "type": "object",
+  "properties": {
+    "job_id": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "passed": {"type": "boolean"},
+          "evidence": {"type": "string"}
+        },
+        "required": ["name", "passed"]
+      }
+    }
+  },
+  "required": ["job_id", "created_at", "checks"]
+}
