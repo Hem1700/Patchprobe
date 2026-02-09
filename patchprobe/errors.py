@@ -13,6 +13,10 @@ class CliArgumentError(PatchdiffError):
     code = 10
 
 
+class ConfigError(PatchdiffError):
+    code = 10
+
+
 class FileNotFoundErrorPatch(PatchdiffError):
     code = 20
 
