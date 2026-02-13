@@ -21,6 +21,7 @@ def _build_parser() -> argparse.ArgumentParser:
     examples = (
         "Examples:\n"
         "  patchdiff ingest --a ./before.bin --b ./after.bin --out ./jobs/job_001\n"
+        "  patchdiff normalize --job ./jobs/job_001\n"
         "  patchdiff diff --job ./jobs/job_001 --backend ghidra\n"
         "  patchdiff rank --job ./jobs/job_001 --top 30\n"
         "  patchdiff decompile --job ./jobs/job_001 --top 30\n"
@@ -59,6 +60,14 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     diff.add_argument("--job", required=True)
     diff.add_argument("--backend", default=None)
+
+    normalize = sub.add_parser(
+        "normalize",
+        help="Normalize binary metadata",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Example:\n  patchdiff normalize --job ./jobs/job_001",
+    )
+    normalize.add_argument("--job", required=True)
 
     rank = sub.add_parser(
         "rank",
@@ -140,6 +149,8 @@ def main() -> None:
 
         if args.command == "ingest":
             pipeline.run_ingest(cfg, args)
+        elif args.command == "normalize":
+            pipeline.run_normalize(cfg, args)
         elif args.command == "diff":
             pipeline.run_diff(cfg, args)
         elif args.command == "rank":

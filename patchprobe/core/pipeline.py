@@ -11,6 +11,10 @@ def run_diff(cfg: dict, args) -> None:
     diff.run(cfg, args)
 
 
+def run_normalize(cfg: dict, args) -> None:
+    normalize.run(cfg, args)
+
+
 def run_rank(cfg: dict, args) -> None:
     rank.run(cfg, args)
 
