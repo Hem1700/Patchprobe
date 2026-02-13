@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from . import ingest, diff, rank, decompile, llm, validate, report
+from . import ingest, normalize, diff, rank, decompile, llm, validate, report
 
 
 def run_ingest(cfg: dict, args) -> None:
@@ -33,6 +33,9 @@ def run_report(cfg: dict, args) -> None:
 
 def run_all(cfg: dict, args) -> None:
     ingest.run(cfg, args)
+    if getattr(args, "job", None) is None:
+        setattr(args, "job", args.out)
+    normalize.run(cfg, args)
     diff.run(cfg, args)
     rank.run(cfg, args)
     decompile.run(cfg, args)

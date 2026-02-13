@@ -6,6 +6,9 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 
 from ..utils.time import now_iso
+from ..utils.jsonschema import validate_data
+
+JOB_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "specs" / "schemas" / "job.schema.json"
 
 
 @dataclass
@@ -37,6 +40,7 @@ def create_job(out_dir: str, tag: str | None, binary_a: BinaryInfo, binary_b: Bi
     )
     path = Path(out_dir) / "job.json"
     path.parent.mkdir(parents=True, exist_ok=True)
+    validate_data(str(JOB_SCHEMA_PATH), asdict(job))
     with path.open("w", encoding="utf-8") as f:
         json.dump(asdict(job), f, indent=2)
     return job

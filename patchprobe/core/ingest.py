@@ -7,6 +7,7 @@ from ..errors import FileNotFoundErrorPatch, IngestError
 from ..utils.hashing import sha256_file
 from ..utils.filetype import detect_filetype_and_arch
 from ..utils.time import now_iso
+from .artifacts import write_artifact
 from .job import BinaryInfo, create_job
 
 
@@ -34,22 +35,46 @@ def run(cfg: dict, args) -> None:
     binary_a = BinaryInfo(path=str(a_path), sha256=a_sha, file_type=a_type, arch=a_arch)
     binary_b = BinaryInfo(path=str(b_path), sha256=b_sha, file_type=b_type, arch=b_arch)
 
-    job = create_job(args.out, args.tag, binary_a, binary_b, cfg)
+    create_job(args.out, args.tag, binary_a, binary_b, cfg)
 
     ingest_dir = Path(args.out) / "artifacts" / "ingest"
-    _write_metadata(ingest_dir / "metadata_a.json", {
+    metadata_a = {
         "binary": "A",
         "path": str(a_path),
         "sha256": a_sha,
         "file_type": a_type,
         "arch": a_arch,
+        "size_bytes": a_path.stat().st_size,
         "created_at": now_iso(),
-    })
-    _write_metadata(ingest_dir / "metadata_b.json", {
+    }
+    metadata_b = {
         "binary": "B",
         "path": str(b_path),
         "sha256": b_sha,
         "file_type": b_type,
         "arch": b_arch,
+        "size_bytes": b_path.stat().st_size,
         "created_at": now_iso(),
-    })
+    }
+    _write_metadata(ingest_dir / "metadata_a.json", metadata_a)
+    _write_metadata(ingest_dir / "metadata_b.json", metadata_b)
+
+    inputs = {
+        "binary_a_sha256": a_sha,
+        "binary_b_sha256": b_sha,
+        "upstream_artifact_hashes": [],
+    }
+    write_artifact(
+        ingest_dir / "metadata_a.artifact.json",
+        "ingest.metadata",
+        inputs,
+        metadata_a,
+        job_dir=Path(args.out),
+    )
+    write_artifact(
+        ingest_dir / "metadata_b.artifact.json",
+        "ingest.metadata",
+        inputs,
+        metadata_b,
+        job_dir=Path(args.out),
+    )

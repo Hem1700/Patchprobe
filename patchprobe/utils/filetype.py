@@ -2,14 +2,24 @@ from __future__ import annotations
 
 from pathlib import Path
 
+_ELF_MAGIC = b"\x7fELF"
+_MACHO_MAGICS = {
+    b"\xfe\xed\xfa\xce",  # MH_MAGIC
+    b"\xce\xfa\xed\xfe",  # MH_CIGAM
+    b"\xfe\xed\xfa\xcf",  # MH_MAGIC_64
+    b"\xcf\xfa\xed\xfe",  # MH_CIGAM_64
+    b"\xca\xfe\xba\xbe",  # FAT_MAGIC
+    b"\xbe\xba\xfe\xca",  # FAT_CIGAM
+}
+
 
 def detect_filetype_and_arch(path: Path) -> tuple[str, str]:
     data = path.read_bytes()[:64]
     if data.startswith(b"MZ"):
         return "PE", _detect_pe_arch(path)
-    if data.startswith(b"ELF"):
+    if data.startswith(_ELF_MAGIC):
         return "ELF", _detect_elf_arch(data)
-    if data[:4] in {b"Ïúíþ", b"þíúÏ", b"Êþº¾", b"¾ºþÊ"}:
+    if data[:4] in _MACHO_MAGICS:
         return "Mach-O", "unknown"
     return "unknown", "unknown"
 

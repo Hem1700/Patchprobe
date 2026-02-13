@@ -16,7 +16,7 @@
       },
       "required": ["binary_a_sha256", "binary_b_sha256"]
     },
-    "payload": {"type": "object"}
+    "payload": {}
   },
   "required": ["artifact_id", "artifact_type", "created_at", "inputs", "payload"]
 }

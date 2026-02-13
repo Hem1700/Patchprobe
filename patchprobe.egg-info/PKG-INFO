@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: patchprobe
+Version: 0.1.0
+Summary: LLM-assisted binary patch diffing (defender-focused)
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: jsonschema>=4.0
+
+# PatchProbe
+
+CLI-first tool for defender-focused binary patch diffing with LLM-assisted triage.
+
+This repository contains:
+- `patchdiff` CLI skeleton
+- schema definitions in `specs/schemas/`
+- a detailed implementation document
+
+See `Implementation_Doc.md` for full details.

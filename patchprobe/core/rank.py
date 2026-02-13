@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .artifacts import write_artifact
 from .job import load_job
 from ..utils.time import now_iso
 
@@ -21,3 +22,14 @@ def run(cfg: dict, args) -> None:
         "candidates": [],
     }
     (out_dir / "ranked_candidates.json").write_text(json.dumps(ranked, indent=2), encoding="utf-8")
+    write_artifact(
+        out_dir / "ranked_candidates.artifact.json",
+        "rank.candidates",
+        {
+            "binary_a_sha256": job.binary_a.sha256,
+            "binary_b_sha256": job.binary_b.sha256,
+            "upstream_artifact_hashes": [],
+        },
+        ranked,
+        job_dir=Path(args.job),
+    )
