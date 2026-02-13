@@ -49,3 +49,49 @@ def test_decompile_emits_per_function_artifacts_from_ranked_candidates(tmp_path:
     assert (out_dir / "fa1" / "pseudocode.txt").exists()
     assert (out_dir / "fb1" / "metadata.json").exists()
     assert (out_dir / "fb1" / "pseudocode.txt").exists()
+
+
+def test_decompile_uses_config_top_n_when_flag_not_set(tmp_path: Path) -> None:
+    a = tmp_path / "a.bin"
+    b = tmp_path / "b.bin"
+    a.write_bytes(b"\x7fELF" + b"\x00" * 64)
+    b.write_bytes(b"\x7fELF" + b"\x01" * 64)
+    job_dir = tmp_path / "job2"
+    create_job(
+        str(job_dir),
+        None,
+        BinaryInfo(path=str(a), sha256="a" * 64, file_type="ELF", arch="x64"),
+        BinaryInfo(path=str(b), sha256="b" * 64, file_type="ELF", arch="x64"),
+        {},
+    )
+
+    diff_dir = job_dir / "artifacts" / "diff"
+    diff_dir.mkdir(parents=True, exist_ok=True)
+    (diff_dir / "function_pairs.json").write_text(
+        json.dumps(
+            [
+                {"func_pair_id": "fp1", "func_id_a": "fa1", "func_id_b": "fb1", "match_score": 1.0, "status": "matched_by_name", "evidence": ["symbol_name=main"]},
+                {"func_pair_id": "fp2", "func_id_a": "fa2", "func_id_b": "fb2", "match_score": 1.0, "status": "matched_by_name", "evidence": ["symbol_name=helper"]},
+            ]
+        ),
+        encoding="utf-8",
+    )
+    rank_dir = job_dir / "artifacts" / "rank"
+    rank_dir.mkdir(parents=True, exist_ok=True)
+    ranked = {
+        "job_id": "job2",
+        "created_at": "now",
+        "top_n": 10,
+        "candidates": [
+            {"func_pair_id": "fp1", "rank": 1, "score": 0.9},
+            {"func_pair_id": "fp2", "rank": 2, "score": 0.8},
+        ],
+    }
+    (rank_dir / "ranked_candidates.json").write_text(json.dumps(ranked), encoding="utf-8")
+
+    cfg = {"backends": {"decompile": "ghidra"}, "ranking": {"top_n": 1}}
+    args = Namespace(job=str(job_dir), top=None, timeout=7)
+    run_decompile(cfg, args)
+
+    artifacts = json.loads((job_dir / "artifacts" / "decompile" / "decompile_artifacts.json").read_text(encoding="utf-8"))
+    assert len(artifacts) == 2

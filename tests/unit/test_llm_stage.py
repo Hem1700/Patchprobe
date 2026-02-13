@@ -61,13 +61,16 @@ def test_llm_stage_builds_packets_and_analysis(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    cfg = {"llm": {"provider": "local", "model": "llama3", "max_rounds": 1}}
+    cfg = {"llm": {"provider": "local", "model": "llama3", "max_rounds": 3}}
     run_llm(cfg, Namespace(job=str(job_dir), provider=None, model=None, max_rounds=None))
 
     analysis_dir = job_dir / "artifacts" / "analysis"
     packets = json.loads((analysis_dir / "packets.json").read_text(encoding="utf-8"))
+    round_outputs = json.loads((analysis_dir / "round_outputs.json").read_text(encoding="utf-8"))
     output = json.loads((analysis_dir / "llm.json").read_text(encoding="utf-8"))
     assert len(packets) == 1
+    assert len(round_outputs) == 3
     assert len(output["analysis"]) == 1
+    assert output["analysis"][0]["round_count"] == 3
     assert output["analysis"][0]["safety"]["no_exploit_steps"] is True
     assert (analysis_dir / "llm_outputs.artifact.json").exists()

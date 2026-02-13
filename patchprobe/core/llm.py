@@ -91,6 +91,7 @@ def run(cfg: dict, args) -> None:
     decompile_by_func_id = {d.get("func_id"): d for d in decompile_items if isinstance(d, dict)}
     analyses: list[dict] = []
     packets: list[dict] = []
+    round_outputs: list[dict] = []
     for candidate in candidates:
         if not isinstance(candidate, dict):
             continue
@@ -109,15 +110,38 @@ def run(cfg: dict, args) -> None:
         diff = diffs_by_id.get(func_pair_id, {"func_pair_id": func_pair_id, "change_summary": {}, "severity_hint": 0.0})
         packet = build_packet(job, func_pair_id, diff, decomp_a, decomp_b)
         packets.append(packet)
-        provider_result = provider.analyze(packet)
-        analyses.append(_build_analysis_from_packet(packet, provider_name, model, provider_result))
+        latest_provider_result: dict = {}
+        round_results: list[dict] = []
+        for round_idx in range(1, max_rounds + 1):
+            round_packet = {
+                **packet,
+                "analysis_round": round_idx,
+                "analysis_max_rounds": max_rounds,
+            }
+            provider_result = provider.analyze(round_packet)
+            if not isinstance(provider_result, dict):
+                provider_result = {"status": "invalid_provider_output", "value": str(provider_result)}
+            round_result = {
+                "func_pair_id": func_pair_id,
+                "round": round_idx,
+                "provider_result": provider_result,
+            }
+            round_results.append(round_result)
+            round_outputs.append(round_result)
+            latest_provider_result = provider_result
+        analysis = _build_analysis_from_packet(packet, provider_name, model, latest_provider_result)
+        analysis["rounds"] = round_results
+        analysis["round_count"] = len(round_results)
+        analyses.append(analysis)
 
     output = {
         "job_id": job.job_id,
         "created_at": now_iso(),
+        "max_rounds": max_rounds,
         "analysis": analyses,
     }
     (out_dir / "packets.json").write_text(json.dumps(packets, indent=2), encoding="utf-8")
+    (out_dir / "round_outputs.json").write_text(json.dumps(round_outputs, indent=2), encoding="utf-8")
     (out_dir / "llm.json").write_text(json.dumps(output, indent=2), encoding="utf-8")
     write_artifact(
         out_dir / "llm.artifact.json",
