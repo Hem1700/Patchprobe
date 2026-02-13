@@ -6,18 +6,25 @@ from .job import Job
 
 
 def build_packet(job: Job, func_id: str, diff: dict, decompile_a: dict, decompile_b: dict) -> dict:
+    pseudocode_a = decompile_a.get("pseudocode", "")
+    pseudocode_b = decompile_b.get("pseudocode", "")
     return {
         "job_id": job.job_id,
         "binary_a": asdict(job.binary_a),
         "binary_b": asdict(job.binary_b),
         "function": {
             "func_id": func_id,
+            "func_pair_id": diff.get("func_pair_id"),
             "name_a": decompile_a.get("name"),
             "name_b": decompile_b.get("name"),
             "prototype_a": decompile_a.get("prototype"),
             "prototype_b": decompile_b.get("prototype"),
             "callers_a": decompile_a.get("callers", []),
             "callers_b": decompile_b.get("callers", []),
+        },
+        "code": {
+            "pseudocode_a": pseudocode_a,
+            "pseudocode_b": pseudocode_b,
         },
         "diff": diff,
         "questions": [
