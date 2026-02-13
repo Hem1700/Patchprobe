@@ -6,6 +6,7 @@ from pathlib import Path
 from ..errors import FileNotFoundErrorPatch, IngestError
 from ..utils.hashing import sha256_file
 from ..utils.filetype import detect_filetype_and_arch
+from ..utils.buildid import extract_build_id
 from ..utils.time import now_iso
 from .artifacts import write_artifact
 from .job import BinaryInfo, create_job
@@ -44,6 +45,7 @@ def run(cfg: dict, args) -> None:
         "sha256": a_sha,
         "file_type": a_type,
         "arch": a_arch,
+        "build_id": extract_build_id(a_path, a_type),
         "size_bytes": a_path.stat().st_size,
         "created_at": now_iso(),
     }
@@ -53,6 +55,7 @@ def run(cfg: dict, args) -> None:
         "sha256": b_sha,
         "file_type": b_type,
         "arch": b_arch,
+        "build_id": extract_build_id(b_path, b_type),
         "size_bytes": b_path.stat().st_size,
         "created_at": now_iso(),
     }

@@ -31,6 +31,7 @@ def test_cli_run_end_to_end_creates_expected_outputs(monkeypatch, tmp_path: Path
 
     assert (job_dir / "job.json").exists()
     assert (job_dir / "artifact_index.json").exists()
+    assert (job_dir / "audit.jsonl").exists()
     assert (job_dir / "artifacts" / "normalize" / "normalized_metadata.json").exists()
     assert (job_dir / "artifacts" / "analysis" / "round_outputs.json").exists()
     assert (job_dir / "report.json").exists()

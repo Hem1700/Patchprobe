@@ -11,6 +11,19 @@ _MACHO_MAGICS = {
     b"\xca\xfe\xba\xbe",  # FAT_MAGIC
     b"\xbe\xba\xfe\xca",  # FAT_CIGAM
 }
+_ELF_EM = {
+    0x03: "x86",
+    0x3E: "x64",
+    0x28: "arm",
+    0xB7: "arm64",
+    0x08: "mips",
+}
+_MACHO_CPU = {
+    0x00000007: "x86",
+    0x01000007: "x64",
+    0x0000000C: "arm",
+    0x0100000C: "arm64",
+}
 
 
 def detect_filetype_and_arch(path: Path) -> tuple[str, str]:
@@ -20,7 +33,7 @@ def detect_filetype_and_arch(path: Path) -> tuple[str, str]:
     if data.startswith(_ELF_MAGIC):
         return "ELF", _detect_elf_arch(data)
     if data[:4] in _MACHO_MAGICS:
-        return "Mach-O", "unknown"
+        return "Mach-O", _detect_macho_arch(data)
     return "unknown", "unknown"
 
 
@@ -44,9 +57,14 @@ def _detect_pe_arch(path: Path) -> str:
 def _detect_elf_arch(data: bytes) -> str:
     if len(data) < 0x14:
         return "unknown"
-    ei_class = data[4]
-    if ei_class == 1:
-        return "x86"
-    if ei_class == 2:
-        return "x64"
-    return "unknown"
+    e_machine = int.from_bytes(data[18:20], "little")
+    return _ELF_EM.get(e_machine, "unknown")
+
+
+def _detect_macho_arch(data: bytes) -> str:
+    if len(data) < 8:
+        return "unknown"
+    magic = data[:4]
+    endian = "little" if magic in {b"\xce\xfa\xed\xfe", b"\xcf\xfa\xed\xfe", b"\xbe\xba\xfe\xca"} else "big"
+    cputype = int.from_bytes(data[4:8], endian, signed=False)
+    return _MACHO_CPU.get(cputype, "unknown")
