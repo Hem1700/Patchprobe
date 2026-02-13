@@ -70,6 +70,7 @@ def test_validate_stage_generates_checks_and_candidate_scores(tmp_path: Path) ->
 
     validation = json.loads((job_dir / "artifacts" / "validation" / "validation.json").read_text(encoding="utf-8"))
     details = json.loads((job_dir / "artifacts" / "validation" / "validation_details.json").read_text(encoding="utf-8"))
-    assert len(validation["checks"]) >= 2
+    assert len(validation["checks"]) >= 3
     assert len(details["candidates"]) == 1
+    assert details["candidates"][0]["bug_class_passed"] is True
     assert details["candidates"][0]["validation_score"] > 0.0

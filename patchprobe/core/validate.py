@@ -26,6 +26,26 @@ def _evidence_present(snippet: str, decompile_a: dict, decompile_b: dict, diff_r
     return any(needle in h.lower() for h in haystacks)
 
 
+def _bug_class_supported(analysis: dict, decompile_a: dict, decompile_b: dict, diff_result: dict) -> bool:
+    bug_class = str(analysis.get("bug_class", "")).lower()
+    text = " ".join(
+        [
+            str(decompile_a.get("pseudocode", "")),
+            str(decompile_b.get("pseudocode", "")),
+            json.dumps(diff_result.get("change_summary", {}), sort_keys=True),
+        ]
+    ).lower()
+    keyword_map = {
+        "bounds-check-hardening": ["bounds", "length", "range", "index"],
+        "null-check-hardening": ["null", "nullptr", "none"],
+        "logic-fix": ["if", "return", "check"],
+    }
+    keywords = keyword_map.get(bug_class, [])
+    if not keywords:
+        return True
+    return any(k in text for k in keywords)
+
+
 def run(cfg: dict, args) -> None:
     job = load_job(args.job)
     out_dir = Path(args.job) / "artifacts" / "validation"
@@ -77,10 +97,12 @@ def run(cfg: dict, args) -> None:
             evidence_items = []
 
         safety_passed = bool(analysis.get("safety", {}).get("no_exploit_steps", False))
+        bug_class_passed = _bug_class_supported(analysis, decomp_a, decomp_b, diff_result)
         confidence = float(analysis.get("confidence", 0.0))
         score = (
             (0.5 if evidence_passed else 0.0)
             + (0.2 if safety_passed else 0.0)
+            + (0.1 if bug_class_passed else 0.0)
             + min(max(confidence, 0.0), 1.0) * 0.3
         )
         score = round(score, 6)
@@ -98,11 +120,19 @@ def run(cfg: dict, args) -> None:
                 "evidence": f"no_exploit_steps={safety_passed}",
             }
         )
+        checks.append(
+            {
+                "name": f"{func_pair_id}:bug_class_alignment",
+                "passed": bug_class_passed,
+                "evidence": f"bug_class={analysis.get('bug_class')}",
+            }
+        )
         per_candidate.append(
             {
                 "func_pair_id": func_pair_id,
                 "evidence_passed": evidence_passed,
                 "safety_passed": safety_passed,
+                "bug_class_passed": bug_class_passed,
                 "validation_score": score,
             }
         )

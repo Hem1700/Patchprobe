@@ -1,4 +1,5 @@
 import json
+import os
 from argparse import Namespace
 from pathlib import Path
 
@@ -45,6 +46,7 @@ def test_decompile_emits_per_function_artifacts_from_ranked_candidates(tmp_path:
     out_dir = job_dir / "artifacts" / "decompile"
     artifacts = json.loads((out_dir / "decompile_artifacts.json").read_text(encoding="utf-8"))
     assert len(artifacts) == 2
+    assert all(a["status"] in {"ghidra_headless_success", "ghidra_headless_failed", "ghidra_headless_unavailable"} for a in artifacts)
     assert (out_dir / "fa1" / "metadata.json").exists()
     assert (out_dir / "fa1" / "pseudocode.txt").exists()
     assert (out_dir / "fb1" / "metadata.json").exists()
@@ -95,3 +97,51 @@ def test_decompile_uses_config_top_n_when_flag_not_set(tmp_path: Path) -> None:
 
     artifacts = json.loads((job_dir / "artifacts" / "decompile" / "decompile_artifacts.json").read_text(encoding="utf-8"))
     assert len(artifacts) == 2
+
+
+def test_decompile_uses_runner_when_available(tmp_path: Path, monkeypatch) -> None:
+    a = tmp_path / "a.bin"
+    b = tmp_path / "b.bin"
+    a.write_bytes(b"\x7fELF" + b"\x00" * 64)
+    b.write_bytes(b"\x7fELF" + b"\x01" * 64)
+    job_dir = tmp_path / "job3"
+    create_job(
+        str(job_dir),
+        None,
+        BinaryInfo(path=str(a), sha256="a" * 64, file_type="ELF", arch="x64"),
+        BinaryInfo(path=str(b), sha256="b" * 64, file_type="ELF", arch="x64"),
+        {},
+    )
+    diff_dir = job_dir / "artifacts" / "diff"
+    diff_dir.mkdir(parents=True, exist_ok=True)
+    (diff_dir / "function_pairs.json").write_text(
+        json.dumps([{"func_pair_id": "fp1", "func_id_a": "fa1", "func_id_b": "fb1", "match_score": 1.0, "status": "matched_by_name", "evidence": ["symbol_name=main"]}]),
+        encoding="utf-8",
+    )
+    rank_dir = job_dir / "artifacts" / "rank"
+    rank_dir.mkdir(parents=True, exist_ok=True)
+    (rank_dir / "ranked_candidates.json").write_text(
+        json.dumps({"job_id": "job3", "created_at": "now", "top_n": 10, "candidates": [{"func_pair_id": "fp1", "rank": 1, "score": 0.9}]}),
+        encoding="utf-8",
+    )
+
+    fake_runner = tmp_path / "fake_runner.sh"
+    fake_runner.write_text(
+        "#!/usr/bin/env bash\n"
+        "set -euo pipefail\n"
+        "out_json=\"$5\"\n"
+        "out_txt=\"$6\"\n"
+        "echo '{\"prototype\":\"int main(void)\"}' > \"$out_json\"\n"
+        "echo 'int main(void){return 0;}' > \"$out_txt\"\n",
+        encoding="utf-8",
+    )
+    os.chmod(fake_runner, 0o755)
+    monkeypatch.setenv("PATCHDIFF_GHIDRA_RUNNER", str(fake_runner))
+
+    cfg = {"backends": {"decompile": "ghidra"}}
+    args = Namespace(job=str(job_dir), top=1, timeout=7)
+    run_decompile(cfg, args)
+
+    artifacts = json.loads((job_dir / "artifacts" / "decompile" / "decompile_artifacts.json").read_text(encoding="utf-8"))
+    assert len(artifacts) == 2
+    assert all(a["status"] == "ghidra_headless_success" for a in artifacts)
