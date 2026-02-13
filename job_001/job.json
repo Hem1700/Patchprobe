@@ -1,0 +1,40 @@
+{
+  "job_id": "8c148d15-24e4-4fc4-9943-93f7d4c0007f",
+  "created_at": "2026-02-13T07:38:12.188036+00:00",
+  "tag": null,
+  "binary_a": {
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/patchprobe/test1.bin",
+    "sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+    "file_type": "unknown",
+    "arch": "unknown"
+  },
+  "binary_b": {
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/patchprobe/test2.bin",
+    "sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "file_type": "unknown",
+    "arch": "unknown"
+  },
+  "config": {
+    "storage": {
+      "type": "filesystem",
+      "root": "~/.patchdiff"
+    },
+    "backends": {
+      "diff": "diaphora",
+      "decompile": "ghidra",
+      "llm": "local"
+    },
+    "ranking": {
+      "top_n": 30,
+      "weights": {}
+    },
+    "llm": {
+      "provider": "local",
+      "model": "llama3",
+      "max_rounds": 1
+    },
+    "report": {
+      "format": "markdown"
+    }
+  }
+}

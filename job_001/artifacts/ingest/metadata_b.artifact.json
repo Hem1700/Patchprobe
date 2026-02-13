@@ -1,0 +1,22 @@
+{
+  "artifact_id": "cb1b9fed-1d8b-433c-8057-1461a0eedec4",
+  "artifact_type": "ingest.metadata",
+  "created_at": "2026-02-13T07:38:12.196696+00:00",
+  "tool_version": "0.1.0",
+  "inputs": {
+    "binary_a_sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+    "binary_b_sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "upstream_artifact_hashes": []
+  },
+  "payload_sha256": "adb3a43a68af9101b3a14bebca2e351847bf55dda972252c844137ea805e6368",
+  "payload": {
+    "binary": "B",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/patchprobe/test2.bin",
+    "sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "file_type": "unknown",
+    "arch": "unknown",
+    "build_id": null,
+    "size_bytes": 1023,
+    "created_at": "2026-02-13T07:38:12.192392+00:00"
+  }
+}

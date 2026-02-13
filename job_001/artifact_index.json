@@ -1,0 +1,106 @@
+[
+  {
+    "artifact_id": "254ad59b-43a7-4a92-af62-7adc6c052fda",
+    "artifact_type": "ingest.metadata",
+    "created_at": "2026-02-13T07:38:12.192834+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/ingest/metadata_a.artifact.json",
+    "payload_sha256": "a32e997112057c702e2815cf4e06c1f3ae33622961ff9892535aab1417b3b757",
+    "artifact_sha256": "396240a2d4a18796c8a7c2f66f08567b2b9c4b24b25b47dcc63fea3e40563d11"
+  },
+  {
+    "artifact_id": "cb1b9fed-1d8b-433c-8057-1461a0eedec4",
+    "artifact_type": "ingest.metadata",
+    "created_at": "2026-02-13T07:38:12.196696+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/ingest/metadata_b.artifact.json",
+    "payload_sha256": "adb3a43a68af9101b3a14bebca2e351847bf55dda972252c844137ea805e6368",
+    "artifact_sha256": "e7f088bc91d9875bb82212800e2b078e09f118fb4e3a4b953dcabf188b433fca"
+  },
+  {
+    "artifact_id": "f90af3de-9495-46cc-afc4-f1fc9b4d9b40",
+    "artifact_type": "normalize.metadata",
+    "created_at": "2026-02-13T07:38:12.201045+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/normalize/normalized_metadata.artifact.json",
+    "payload_sha256": "0d024df2ee739df469674c1acc69dba3b031d9cd469085c379549574f46074a0",
+    "artifact_sha256": "0e28e9f5c6d4b95a78f196709c9b08452ea8fa71b8a42fbb1a73545084a28b9b"
+  },
+  {
+    "artifact_id": "e3c476b2-c812-495d-bf9e-ceb7ded67400",
+    "artifact_type": "diff.function_pairs",
+    "created_at": "2026-02-13T07:38:12.334312+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/diff/function_pairs.artifact.json",
+    "payload_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "artifact_sha256": "a3db8d59d3d26e3159950d70d624515c97308cefef0900c87dc0ca27d72be8f6"
+  },
+  {
+    "artifact_id": "3402d0d4-39c0-4287-b217-5c8d317ccf82",
+    "artifact_type": "diff.results",
+    "created_at": "2026-02-13T07:38:12.338718+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/diff/diff_results.artifact.json",
+    "payload_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "artifact_sha256": "3f7e24c2a3d60f224014c27f2f6ba4afcb5c5812ad3076c92bb9639cc78352fa"
+  },
+  {
+    "artifact_id": "2ca76d19-f711-4d28-92c2-d436fd1458c3",
+    "artifact_type": "rank.candidates",
+    "created_at": "2026-02-13T07:38:12.343127+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/rank/ranked_candidates.artifact.json",
+    "payload_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "artifact_sha256": "130df10347f8e63743ed5eae8d6c209f3be4244422bea0a8599293bcd7309a0f"
+  },
+  {
+    "artifact_id": "68a2bb03-4392-4cf7-8540-e1a3f843fa0f",
+    "artifact_type": "decompile.artifacts",
+    "created_at": "2026-02-13T07:38:12.347565+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/decompile/decompile_artifacts.artifact.json",
+    "payload_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "artifact_sha256": "900a586e1c07f467a235ff8b1950dec2e8d6b64ee7c4151d5eb4d2440b4051d0"
+  },
+  {
+    "artifact_id": "941afeb3-803f-4d0c-812f-9cba01a6750b",
+    "artifact_type": "analysis.llm",
+    "created_at": "2026-02-13T07:38:12.352237+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/analysis/llm.artifact.json",
+    "payload_sha256": "281a6196b32fd45d430ed31c50194dd7e92efaae6db77852cfbe104a70749cc5",
+    "artifact_sha256": "0eba592efdb9c95ebde0c10323f18131d76251f6f85b8cd9d3ccda89e816c895"
+  },
+  {
+    "artifact_id": "273b3504-a01d-4883-be0f-c4672d5c3f0a",
+    "artifact_type": "analysis.outputs",
+    "created_at": "2026-02-13T07:38:12.355986+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/analysis/llm_outputs.artifact.json",
+    "payload_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "artifact_sha256": "c48c42379ba646ae301db2da10a032229455739ee9563183af5865834ac045b0"
+  },
+  {
+    "artifact_id": "6ade1e4f-551d-4daf-8134-7e50935d646a",
+    "artifact_type": "validation.result",
+    "created_at": "2026-02-13T07:38:12.363255+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/validation/validation.artifact.json",
+    "payload_sha256": "936bc3ab6d9c75e8cbc95e4a70e746ed251749e8c82a1983534505a65a15e99a",
+    "artifact_sha256": "e2f6041094a5c2d7e0572a10626c8c019a860ee4b99e051a3fe210ce14fdd407"
+  },
+  {
+    "artifact_id": "a456e463-9ff4-4134-b236-3f593f75c76a",
+    "artifact_type": "report.output",
+    "created_at": "2026-02-13T07:38:12.370487+00:00",
+    "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/job_001/artifacts/report/report.artifact.json",
+    "payload_sha256": "dccc0fb29f3a2614e4cd521b313fdfb3c4b2c596ebb77bb4fa4b89814648e14b",
+    "artifact_sha256": "11b2af96beb5477081d1ada333d96b7384ec390cf8e3704024f6f0d9cc84e5c2"
+  },
+  {
+    "artifact_id": "37814add-e947-4f59-82a5-c3134077657d",
+    "artifact_type": "analysis.llm",
+    "created_at": "2026-02-13T07:40:26.641783+00:00",
+    "path": "job_001/artifacts/analysis/llm.artifact.json",
+    "payload_sha256": "fca4d336d26f293ba21b8f3ccc9641f02f989f75509eb2fb4d28613eb924844a",
+    "artifact_sha256": "09119a8032c246774fdf15a3f87b1d8f8597888e9073f2286cad8415ca2ff66f"
+  },
+  {
+    "artifact_id": "e38fc2fb-5df2-453c-b3d2-78dd133ad784",
+    "artifact_type": "analysis.outputs",
+    "created_at": "2026-02-13T07:40:26.646396+00:00",
+    "path": "job_001/artifacts/analysis/llm_outputs.artifact.json",
+    "payload_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "artifact_sha256": "6029a6ef6b32709c693a1c7fb1563049ec99db9b511d5111994ff300a3237dea"
+  }
+]

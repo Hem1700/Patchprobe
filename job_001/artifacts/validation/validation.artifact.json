@@ -1,0 +1,17 @@
+{
+  "artifact_id": "6ade1e4f-551d-4daf-8134-7e50935d646a",
+  "artifact_type": "validation.result",
+  "created_at": "2026-02-13T07:38:12.363255+00:00",
+  "tool_version": "0.1.0",
+  "inputs": {
+    "binary_a_sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+    "binary_b_sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "upstream_artifact_hashes": []
+  },
+  "payload_sha256": "936bc3ab6d9c75e8cbc95e4a70e746ed251749e8c82a1983534505a65a15e99a",
+  "payload": {
+    "job_id": "8c148d15-24e4-4fc4-9943-93f7d4c0007f",
+    "created_at": "2026-02-13T07:38:12.360274+00:00",
+    "checks": []
+  }
+}

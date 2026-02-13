@@ -1,0 +1,18 @@
+{
+  "artifact_id": "37814add-e947-4f59-82a5-c3134077657d",
+  "artifact_type": "analysis.llm",
+  "created_at": "2026-02-13T07:40:26.641783+00:00",
+  "tool_version": "0.1.0",
+  "inputs": {
+    "binary_a_sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+    "binary_b_sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "upstream_artifact_hashes": []
+  },
+  "payload_sha256": "fca4d336d26f293ba21b8f3ccc9641f02f989f75509eb2fb4d28613eb924844a",
+  "payload": {
+    "job_id": "8c148d15-24e4-4fc4-9943-93f7d4c0007f",
+    "created_at": "2026-02-13T07:40:26.641088+00:00",
+    "max_rounds": 2,
+    "analysis": []
+  }
+}

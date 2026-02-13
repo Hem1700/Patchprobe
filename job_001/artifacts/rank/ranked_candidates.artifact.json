@@ -1,0 +1,13 @@
+{
+  "artifact_id": "2ca76d19-f711-4d28-92c2-d436fd1458c3",
+  "artifact_type": "rank.candidates",
+  "created_at": "2026-02-13T07:38:12.343127+00:00",
+  "tool_version": "0.1.0",
+  "inputs": {
+    "binary_a_sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+    "binary_b_sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "upstream_artifact_hashes": []
+  },
+  "payload_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "payload": []
+}

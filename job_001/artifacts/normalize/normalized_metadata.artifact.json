@@ -1,0 +1,48 @@
+{
+  "artifact_id": "f90af3de-9495-46cc-afc4-f1fc9b4d9b40",
+  "artifact_type": "normalize.metadata",
+  "created_at": "2026-02-13T07:38:12.201045+00:00",
+  "tool_version": "0.1.0",
+  "inputs": {
+    "binary_a_sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+    "binary_b_sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "upstream_artifact_hashes": []
+  },
+  "payload_sha256": "0d024df2ee739df469674c1acc69dba3b031d9cd469085c379549574f46074a0",
+  "payload": {
+    "job_id": "8c148d15-24e4-4fc4-9943-93f7d4c0007f",
+    "created_at": "2026-02-13T07:38:12.200865+00:00",
+    "binary_a": {
+      "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/patchprobe/test1.bin",
+      "sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+      "file_type": "unknown",
+      "arch": "unknown",
+      "size_bytes": 1023,
+      "section_count": 0,
+      "sections": [],
+      "has_imports_hint": false,
+      "has_exports_hint": false,
+      "has_symbols_hint": false,
+      "has_debug_info_hint": false,
+      "has_signature_hint": false
+    },
+    "binary_b": {
+      "path": "/Users/hemparekh/Desktop/Personal Projects/PatchProbe/patchprobe/test2.bin",
+      "sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+      "file_type": "unknown",
+      "arch": "unknown",
+      "size_bytes": 1023,
+      "section_count": 0,
+      "sections": [],
+      "has_imports_hint": false,
+      "has_exports_hint": false,
+      "has_symbols_hint": false,
+      "has_debug_info_hint": false,
+      "has_signature_hint": false
+    },
+    "delta": {
+      "size_bytes": 0,
+      "section_count": 0
+    }
+  }
+}

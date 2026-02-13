@@ -1,0 +1,20 @@
+{
+  "job_id": "8c148d15-24e4-4fc4-9943-93f7d4c0007f",
+  "created_at": "2026-02-13T07:38:12.367664+00:00",
+  "summary": "Analyzed 0 candidate(s); top candidate selected by blended rank/LLM/validation score.",
+  "candidates": [],
+  "audit": [
+    {
+      "stage": "rank",
+      "candidate_count": 0
+    },
+    {
+      "stage": "analysis",
+      "candidate_count": 0
+    },
+    {
+      "stage": "validation",
+      "candidate_count": 0
+    }
+  ]
+}

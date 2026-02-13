@@ -1,0 +1,32 @@
+{
+  "artifact_id": "a456e463-9ff4-4134-b236-3f593f75c76a",
+  "artifact_type": "report.output",
+  "created_at": "2026-02-13T07:38:12.370487+00:00",
+  "tool_version": "0.1.0",
+  "inputs": {
+    "binary_a_sha256": "5768b7ceda4187bd9aed3e04d00672eb9db799f926a6d0866a374695291903f1",
+    "binary_b_sha256": "4940f40265c8a838333c7aea2d5b27417697dcb568ce20d8708438ba4862a7b8",
+    "upstream_artifact_hashes": []
+  },
+  "payload_sha256": "dccc0fb29f3a2614e4cd521b313fdfb3c4b2c596ebb77bb4fa4b89814648e14b",
+  "payload": {
+    "job_id": "8c148d15-24e4-4fc4-9943-93f7d4c0007f",
+    "created_at": "2026-02-13T07:38:12.367664+00:00",
+    "summary": "Analyzed 0 candidate(s); top candidate selected by blended rank/LLM/validation score.",
+    "candidates": [],
+    "audit": [
+      {
+        "stage": "rank",
+        "candidate_count": 0
+      },
+      {
+        "stage": "analysis",
+        "candidate_count": 0
+      },
+      {
+        "stage": "validation",
+        "candidate_count": 0
+      }
+    ]
+  }
+}

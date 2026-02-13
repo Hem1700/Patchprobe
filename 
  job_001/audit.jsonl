@@ -1,0 +1,2 @@
+{"details": {}, "event": "start", "stage": "ingest", "timestamp": "2026-02-13T07:37:18.140756+00:00"}
+{"details": {"error": "binary A not found: /Users/hemparekh/Desktop/Personal Projects/PatchProbe/\n  patchprobe/test1.bin"}, "event": "error", "stage": "ingest", "timestamp": "2026-02-13T07:37:18.141395+00:00"}
